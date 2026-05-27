@@ -66,30 +66,25 @@ function applyFormattingRules(editor) {
     // 4) If there is differences, we need to first find the current position of the cursor in terms of "# of chars from the start of the div"
     const pos = calcCursorPosition(editor)
 
-    // 5) now we got the position in terms of "# of chars from the start of the div"
-    //      So now we need to adjust this position manually to remove all instances of the asteriks because once we push that formatted
-    //      html to the DOM, the asteriks will go away and be replaced with the italics tags, which aren't gonna appear to the user and 
-    //      won't count as characters
-    //
-    //      Each completed *...* loses 2 chars (the two asterisks). So we adjust the cursor position by 2 for every instance of *...* before the cursor
-    let adjusted = pos
-    const re = /\*\*([^*]+)\*\*/g
-    let m
-    while ((m = re.exec(text)) !== null) {
-        // Check 2 - we are checking if the instance we just found comes before our cursor or after
-        //          if it's after, then it doesn't matter to us because we just need to restore the cursor up 
-        //          until this point on the formatted HTML version; not anywhere later
-        if (m.index + m[0].length <= pos) {
-            adjusted -= 4
-        }
-    }
+    // 5) After that, we now want to make a copy of the text and remove all the asterisks and stuff to get the text that the user sees (and
+    //      they won't see anyt asterisks on their screen)
+    //          Note: we slice the text to only incluide until pos, because that's only where we need our cursor to be updated to (after we remove the asterisks)
+    //      So we replaced all those instances with just the text that was between the asterisks
+    //          Note: we do bold first because we don't want to accidentally treat the *...* in a **...** as an italics
+    let visible = text.slice(0, pos)
+    visible = visible.replace(/\*\*([^*]+)\*\*/g, '$1')
+    visible = visible.replace(/\*([^*]+)\*/g, '$1')
 
-    // 6) We now got the new position of the cursor in terms of "# of chars from the start of the div". We can safely update the DOM to contain our formatted HTML
+    // 6) Now that "visible" contains the text that the user will literally see on their end (up until where they finished their typing), we just need to 
+    //      put that length into a variable called adjusted; this variable represents where our cursor SHOULD be after the DOM gets updated with the formatted HTML
+    const adjusted = visible.length
+
+    // 7) We now got the new position of the cursor in terms of "# of chars from the start of the div". We can safely update the DOM to contain our formatted HTML
     // Note: We had to manually find the adjusted position because if we did it after this step, it destroys the object the cursor is currently pointing at, and resets it to the beginning
     //      So if the user added something to the middle of the page, then we wouldn't know where they added it, since the cursor would've been moved to the beginning
     editor.innerHTML = html
 
-    // 7) Now since the cursor has been moved to the beginning of the page, we need to bring it back to where it should be (which we kept track of by calculating the "adjusted" var)
+    // 8) Now since the cursor has been moved to the beginning of the page, we need to bring it back to where it should be (which we kept track of by calculating the "adjusted" var)
     //      We send it to restoreCursor to get it moved
     restoreCursor(editor, adjusted)
 }
