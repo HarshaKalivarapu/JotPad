@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>contentEditable demo — for JotPad learning</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #222; line-height: 1.5; }
+  h1 { font-size: 22px; }
+  h2 { margin-top: 40px; font-size: 18px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  p { margin: 8px 0; }
+  code { background: #eef; padding: 1px 5px; border-radius: 3px; font-size: 90%; }
+  .note { background: #fff8dc; border-left: 3px solid #e0c060; padding: 10px 14px; margin: 12px 0; font-size: 14px; }
+  .demo { margin: 12px 0 24px; }
+  .label { font-size: 12px; color: #666; margin: 6px 0 4px; }
+  .box { border: 1px solid #bbb; padding: 10px; min-height: 50px; border-radius: 4px; font-size: 16px; background: white; }
+  .box[contenteditable]:focus { outline: 2px solid #3366cc; }
+  textarea.box { width: 100%; font-family: inherit; font-size: 16px; box-sizing: border-box; resize: vertical; }
+  .readout { background: #f4f4f4; padding: 6px 8px; font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; border-radius: 3px; min-height: 20px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>contentEditable — hands-on demo</h1>
+<p>This file is just for learning. It is not used by JotPad. Delete the whole <code>demo/</code> folder when you're done.</p>
+<p>To run: just double-click this file, or drag it into a browser tab. No server, no build step needed.</p>
+
+<!-- ============================================================ -->
+<h2>1 &middot; textarea vs. contentEditable</h2>
+<p>Type into both boxes below. They <em>feel</em> similar. Look at what's actually <em>inside</em> each one.</p>
+
+<div class="demo row">
+  <div>
+    <div class="label">&lt;textarea&gt; &mdash; holds a plain string</div>
+    <textarea class="box" id="ta" rows="3">Try typing **here**</textarea>
+    <div class="label">.value (always a string):</div>
+    <div class="readout" id="ta-out"></div>
+  </div>
+  <div>
+    <div class="label">&lt;div contenteditable&gt; &mdash; holds a DOM tree</div>
+    <div class="box" contenteditable="true" id="ce">Try typing <strong>here</strong></div>
+    <div class="label">.innerHTML (it is HTML, not just text):</div>
+    <div class="readout" id="ce-out"></div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Lesson:</strong> a textarea is a black box with one string inside. A contentEditable element holds a tree of nodes &mdash; text nodes, element nodes (like &lt;strong&gt;), maybe &lt;br&gt; tags. That tree is what makes inline styling possible. It is also what makes everything else harder.
+</div>
+
+<!-- ============================================================ -->
+<h2>2 &middot; What the cursor actually is</h2>
+<p>Click anywhere inside the box below, including inside the bold word. Watch the readout update.</p>
+
+<div class="demo">
+  <div class="box" contenteditable="true" id="cursor-demo">Click anywhere in this text, including <strong>inside the bold word</strong>, and watch below.</div>
+  <div class="label">Current cursor (a Range):</div>
+  <div class="readout" id="cursor-out">Click in the box above...</div>
+</div>
+
+<div class="note">
+  <strong>Lesson:</strong> the cursor is not a number like it is in a textarea. It is a pair: which DOM node it is in, and the offset within that node. If that node gets destroyed, the cursor has nothing to anchor to.
+</div>
+
+<!-- ============================================================ -->
+<h2>3 &middot; The cursor problem (broken)</h2>
+<p>This box scans the text every keystroke and tries to render <code>**word**</code> as <strong>word</strong> by rewriting <code>innerHTML</code>. Watch what happens to your cursor.</p>
+
+<div class="demo">
+  <div class="box" contenteditable="true" id="broken">Type **test** here. The cursor will jump to the start of the box.</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>4 &middot; The cursor problem (save and restore)</h2>
+<p>Same logic, but we save where the cursor was before rewriting, then move it back afterward.</p>
+
+<div class="demo">
+  <div class="box" contenteditable="true" id="fixed">Type **test** here. Cursor stays put.</div>
+</div>
+
+<div class="note">
+  <strong>Caveat:</strong> "fixed" here means "good enough for a demo." Doing this <em>perfectly</em> &mdash; handling pastes, multi-line edits, browser quirks, undo history &mdash; is what libraries like Tiptap and Lexical exist for.
+</div>
+
+<script>
+  /* =====================================================================
+   * Section 1 - readouts
+   * Show what is inside each editor in real time.
+   * =================================================================== */
+  const ta = document.getElementById('ta');
+  const taOut = document.getElementById('ta-out');
+  const ce = document.getElementById('ce');
+  const ceOut = document.getElementById('ce-out');
+
+  function updateReadouts() {
+    // Textarea: a single string. JSON.stringify shows escape characters cleanly.
+    taOut.textContent = JSON.stringify(ta.value);
+    // contentEditable: the live HTML inside the element.
+    ceOut.textContent = ce.innerHTML;
+  }
+  updateReadouts();
+  ta.addEventListener('input', updateReadouts);
+  ce.addEventListener('input', updateReadouts);
+
+  /* =====================================================================
+   * Section 2 - cursor inspector
+   *
+   * window.getSelection() returns the current Selection object.
+   * Selections can be a single point (a cursor) or a range (highlighted
+   * text). Either way they are described by node + offset, not pixels.
+   * =================================================================== */
+  const cursorDemo = document.getElementById('cursor-demo');
+  const cursorOut = document.getElementById('cursor-out');
+
+  function updateCursorReadout() {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    if (!cursorDemo.contains(sel.anchorNode)) return; // ignore cursors elsewhere
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+
+    let nodeDesc;
+    if (node.nodeType === Node.TEXT_NODE) {
+      // A text node is a leaf containing raw characters.
+      nodeDesc = 'text node containing: "' + node.textContent + '"';
+    } else {
+      // An element node is a tag wrapping other nodes.
+      nodeDesc = '<' + node.nodeName.toLowerCase() + '> element';
+    }
+
+    cursorOut.textContent =
+      'node:   ' + nodeDesc + '\n' +
+      'offset: ' + range.startOffset + '  (characters into that node)';
+  }
+  document.addEventListener('selectionchange', updateCursorReadout);
+
+  /* =====================================================================
+   * Section 3 - broken bold
+   *
+   * What the user sees: type **test**, see "test" get bolded, but the
+   * cursor jumps to position 0.
+   *
+   * Why: every time we set innerHTML, the browser destroys every node
+   * inside the element and builds new ones. The cursor's old anchor
+   * node no longer exists. The browser bails and puts the cursor at
+   * the start.
+   * =================================================================== */
+  const brokenEl = document.getElementById('broken');
+  brokenEl.addEventListener('input', () => {
+    const text = brokenEl.textContent;
+    const html = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    if (html !== brokenEl.innerHTML) {
+      brokenEl.innerHTML = html; // <-- cursor anchor destroyed here
+    }
+  });
+
+  /* =====================================================================
+   * Section 4 - bold with save/restore
+   *
+   * Trick: before we mutate, record the cursor's position as a plain
+   * character count from the start of the element. That number is
+   * stable across any DOM mutation because it does not reference any
+   * specific node. After we mutate, walk the new tree until we have
+   * counted that many characters, and put the cursor there.
+   * =================================================================== */
+  const fixedEl = document.getElementById('fixed');
+
+  // Save: return how many visible characters are between the start of
+  // `el` and the current cursor.
+  function saveCursor(el) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return null;
+    const range = sel.getRangeAt(0);
+    if (!el.contains(range.endContainer)) return null;
+
+    // Make a Range that covers "everything in `el` up to the cursor",
+    // then take its text length. That length is the cursor position
+    // as a character offset.
+    const pre = range.cloneRange();
+    pre.selectNodeContents(el);
+    pre.setEnd(range.endContainer, range.endOffset);
+    return pre.toString().length;
+  }
+
+  // Restore: place the cursor at character offset `pos` inside `el`.
+  function restoreCursor(el, pos) {
+    if (pos == null) return;
+    // TreeWalker lets us visit every text node in document order.
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let seen = 0;
+    let node;
+    while ((node = walker.nextNode())) {
+      const end = seen + node.length;
+      if (end >= pos) {
+        const range = document.createRange();
+        range.setStart(node, pos - seen);
+        range.collapse(true);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        return;
+      }
+      seen = end;
+    }
+  }
+
+  fixedEl.addEventListener('input', () => {
+    const text = fixedEl.textContent;
+    const html = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    if (html === fixedEl.innerHTML) return;
+
+    // Save where the cursor is, as a character offset.
+    const pos = saveCursor(fixedEl);
+
+    // When we replace **test** with <strong>test</strong>, four
+    // characters (the two **s) disappear from the visible text. So if
+    // the cursor was AFTER any complete **...** pair, it needs to
+    // shift left by 4 for each pair that vanished before it.
+    let adjusted = pos;
+    const re = /\*\*(.+?)\*\*/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index + m[0].length <= pos) adjusted -= 4;
+    }
+
+    fixedEl.innerHTML = html;
+    restoreCursor(fixedEl, adjusted);
+  });
+</script>
+
+</body>
+</html>
