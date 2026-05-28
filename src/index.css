@@ -1,10 +1,20 @@
+body {
+  margin: 0;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .top-bar-panel {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   padding: 10px 20px;
-  background-color: transparent;
+  background-color: #fcfaf8;
   border-bottom: 1px solid transparent;
 }
 
@@ -18,12 +28,20 @@
 .side-bar-panel {
   display: flex;
   flex-direction: column;
-  width: 250px;
-  height: 100vh;
-  background-color: transparent;
-  border-right: 1px solid #ddd;
-  padding: 10px;
+  width: 0;
+  height: 100%;
+  background-color: #fcfaf8;
+  padding: 10px 0;
   gap: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.25s ease, padding 0.25s ease;
+}
+
+.side-bar-panel.open {
+  width: 250px;
+  padding: 10px;
+  border-right: 1px solid #ddd;
 }
 
 .side-bar-panel button {
@@ -44,11 +62,13 @@
   flex: 1;
   background-color: #fcfaf8;
   display: flex;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .text-space {
   flex: 1;
-  margin: 40px 60px;
+  margin: 40px 16%;
 
   background-color: transparent;
   border: none;
@@ -57,8 +77,9 @@
 
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 1.2rem;
-  line-height: 1.6;
+  line-height: 1.35;
   color: #333;
+  transition: margin 0.25s ease;
 }
 
 /* Tiptap renders the editable area as an inner .ProseMirror element, so the
@@ -69,11 +90,26 @@
 
 .text-space .ProseMirror ul {
   list-style-type: '-  ';
+  margin: 0.15em 0;
+}
+
+.text-space .ProseMirror li {
+  margin: 0;
+}
+
+.text-space .ProseMirror p {
+  margin: 0.15em 0;
+}
+
+/* Smaller side margins once the side panel is open. */
+.panel-open .text-space {
+  margin: 40px 8%;
 }
 
 .main-container {
   display: flex;
-  height: calc(100vh - 60px);
+  flex: 1;
+  min-height: 0;
 }
 
 .page-button {

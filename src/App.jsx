@@ -133,15 +133,14 @@ function App() {
   return (
     <div className="app-container">
       <TopBar switchToggle={handleSideBarToggle} currentPage={currentPage}/>
-      <div className="main-container">
-        {sideBar && <SideBar pagesList={pages} changePage={setActivePageId} createPage={handleCreatePage} deletePage={handleDeletePage} updatePageTitle={handleUpdateCurrentPageTitle}/>}
+      <div className={sideBar ? "main-container panel-open" : "main-container"}>
+        <SideBar isOpen={sideBar} pagesList={pages} changePage={setActivePageId} createPage={handleCreatePage} deletePage={handleDeletePage} updatePageTitle={handleUpdateCurrentPageTitle}/>
         {currentPage ? (
           <Page currentPage={currentPage} updatePage={handleUpdateCurrentPage}/>
         ) : (
           <div className="loading-screen">Loading notes from cloud...</div>
         )}
       </div>
-      <h1>JotPad is alive.</h1>
     </div>
   )
 }

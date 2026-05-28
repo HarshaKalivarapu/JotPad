@@ -11,7 +11,7 @@ function SideBar(props) {
     }
 
     return (
-        <div className="side-bar-panel">
+        <div className={props.isOpen ? "side-bar-panel open" : "side-bar-panel"}>
             <button className="create-page" onClick={props.createPage}>New Page</button>
             {props.pagesList.map((page) => (
                 <div className="page-button" key={page.id}>
