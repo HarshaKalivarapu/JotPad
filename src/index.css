@@ -25,6 +25,24 @@ body {
   font-family: 'IBM Plex Sans', sans-serif;
 }
 
+/* Reusable icon button: no chrome, circular hover highlight. */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.15s ease;
+}
+
+.icon-button:hover {
+  background-color: #e4e6e9;
+}
+
 .side-bar-panel {
   display: flex;
   flex-direction: column;
