@@ -54,10 +54,20 @@
   outline: none;
   resize: none;
 
-  font-family: 'Georgia', serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-size: 1.2rem;
   line-height: 1.6;
   color: #333;
+}
+
+/* Tiptap renders the editable area as an inner .ProseMirror element, so the
+   focus outline and list marker must be targeted there (not on .text-space). */
+.text-space .ProseMirror {
+  outline: none;
+}
+
+.text-space .ProseMirror ul {
+  list-style-type: '-  ';
 }
 
 .main-container {
