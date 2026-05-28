@@ -3,7 +3,7 @@ import { useState, useEffect} from 'react'
 import { supabase } from './supabase'
 import TopBar from './components/TopBar.jsx'
 import SideBar from './components/SideBar.jsx'
-import Page from './components/Page.jsx'
+import Page from './components/PageDemo.jsx'
 
 function App() {
   const [sideBar, setSideBar] = useState(false)
