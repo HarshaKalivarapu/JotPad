@@ -18,7 +18,7 @@ button, input, textarea {
   justify-content: space-between;
   align-items: center;
 
-  padding: 10px 20px;
+  padding: 16px 20px 12px;
   background-color: #fcfaf8;
   border-bottom: 1px solid transparent;
 }
