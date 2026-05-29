@@ -50,7 +50,7 @@ function SideBar(props) {
 
                             {editId === notebook.id ? (
                                 <>
-                                    <input value={tempTitle} onChange={(e) => setTempTitle(e.target.value)} autoFocus />
+                                    <input value={tempTitle} onChange={(e) => setTempTitle(e.target.value)} onFocus={(e) => e.target.select()} autoFocus />
                                     <button onClick={() => commitNotebookRename(notebook.id)}>✓</button>
                                 </>
                             ) : (
@@ -92,7 +92,7 @@ function SideBar(props) {
 
                             {editId === page.id ? (
                                 <>
-                                    <input value={tempTitle} onChange={(e) => setTempTitle(e.target.value)} autoFocus />
+                                    <input value={tempTitle} onChange={(e) => setTempTitle(e.target.value)} onFocus={(e) => e.target.select()} autoFocus />
                                     <button onClick={() => commitPageRename(page.id)}>✓</button>
                                 </>
                             ) : (
