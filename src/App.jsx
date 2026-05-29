@@ -21,10 +21,11 @@ function App() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { data: notebookData, error: notebookError } = await supabase.from('notebooks').select('*');
+        // Most-recently-edited first.
+        const { data: notebookData, error: notebookError } = await supabase.from('notebooks').select('*').order('updated_at', { ascending: false });
         if (notebookError) throw notebookError;
 
-        const { data: pageData, error: pageError } = await supabase.from('pages').select('*');
+        const { data: pageData, error: pageError } = await supabase.from('pages').select('*').order('updated_at', { ascending: false });
         if (pageError) throw pageError;
 
         setNotebooks(notebookData)
@@ -86,16 +87,22 @@ function App() {
     if (!currentPage) return;
 
     const timerId = setTimeout(async () => {
+      const now = new Date().toISOString();
+
       const { error } = await supabase
         .from('pages')
-        .update({ content: currentPage.content })
+        .update({ content: currentPage.content, updated_at: now })
         .eq('id', currentPage.id);
 
-        if (error) {
-          console.error("Cloud Auto-Save Error:", error.message);
-        } else {
-          console.log("Saved to cloud!"); // Optional: just to prove it works in your console
-        }
+      // Bump the page's notebook so it also rises to the top of the list.
+      await supabase
+        .from('notebooks')
+        .update({ updated_at: now })
+        .eq('id', currentPage.notebook_id);
+
+      if (error) {
+        console.error("Cloud Auto-Save Error:", error.message);
+      }
     }, 1000);
 
     return () => {
@@ -179,15 +186,20 @@ function App() {
   }
 
   function handleUpdateCurrentPage(newContent) {
-    const updatedPages = pages.map(page => {
-      if (page.id === activePageId) {
-        return {...page, content: newContent}
-      }
+    // Update the content AND move this page to the front, so the most
+    // recently edited page sits at the top of the list right away.
+    const edited = pages.find(page => page.id === activePageId)
+    if (!edited) return
+    const others = pages.filter(page => page.id !== activePageId)
+    setPages([{ ...edited, content: newContent }, ...others])
 
-      return page
+    // Bump the active notebook to the front too (skip if already first).
+    setNotebooks(prev => {
+      if (prev[0]?.id === activeNotebookId) return prev
+      const active = prev.find(notebook => notebook.id === activeNotebookId)
+      if (!active) return prev
+      return [active, ...prev.filter(notebook => notebook.id !== activeNotebookId)]
     })
-
-    setPages(updatedPages)
   }
 
   async function handleUpdateCurrentPageTitle(targetPageId, newTitle) {
