@@ -1,16 +1,34 @@
-# React + Vite
+# JotPad
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimalist, cross-device note-taking app inspired by blank.page. Organize notes into notebooks and pages, format with markdown-style shortcuts, and sync everything to the cloud.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Notebooks & pages** — group notes into notebooks, each holding multiple pages
+- **Markdown-style formatting** — `**bold**`, `*italic*`, and `- ` bullet lists with nesting
+- **Cloud sync** — notes are stored in Supabase and shared across devices
+- **Installable PWA** — add it to a phone or desktop as a standalone app
+- **Recently edited first** — pages and notebooks sort by last edit; reopens to where you left off (per device)
 
-## React Compiler
+## Tech stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + Vite
+- Tiptap (rich-text editor)
+- Supabase (Postgres + data sync)
+- vite-plugin-pwa (manifest + service worker)
 
-## Expanding the ESLint configuration
+## Running locally
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+Requires a `.env` file with your Supabase credentials:
+
+```
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+Build for production with `npm run build`.
