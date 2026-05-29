@@ -12,7 +12,22 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { Extension } from '@tiptap/core'
 import { useEffect } from 'react'
+
+// Tab indents a normal line (inserts a tab character). Inside a list we
+// return false so StarterKit's Tab (nest the list item) runs instead.
+const TabIndent = Extension.create({
+  name: 'tabIndent',
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => {
+        if (this.editor.isActive('listItem')) return false
+        return this.editor.commands.insertContent('\t')
+      },
+    }
+  },
+})
 
 function Page(props) {
     // useEditor creates and manages a Tiptap editor instance. It returns null
@@ -31,7 +46,7 @@ function Page(props) {
         //   Enter      → new bullet (empty bullet exits the list)
         //   Tab        → nest as sub-bullet
         //   Shift+Tab  → un-nest one level
-        extensions: [StarterKit],
+        extensions: [StarterKit, TabIndent],
 
         // Initial document, loaded from Supabase via props. Tiptap parses this
         // HTML string into its own internal document model.

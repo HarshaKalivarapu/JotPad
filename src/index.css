@@ -181,6 +181,7 @@ button, input, textarea {
    focus outline and list marker must be targeted there (not on .text-space). */
 .text-space .ProseMirror {
   outline: none;
+  tab-size: 4;
 }
 
 .text-space .ProseMirror ul {
