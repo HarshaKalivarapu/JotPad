@@ -283,7 +283,9 @@ function App() {
           updatePageTitle={handleUpdateCurrentPageTitle}
         />
         {loading ? (
-          <div className="loading-screen">Loading notes from cloud...</div>
+          <div className="empty-state">
+            <p>Loading notes from cloud...</p>
+          </div>
         ) : notebooks.length === 0 ? (
           <div className="empty-state">
             <p>Create a notebook to get started</p>
