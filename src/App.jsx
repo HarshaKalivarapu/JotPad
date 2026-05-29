@@ -30,14 +30,19 @@ function App() {
         setNotebooks(notebookData)
         setPages(pageData)
 
-        // Default to the first notebook and its first page.
+        // Restore the last-opened notebook + page (saved per-device in
+        // localStorage), falling back to the first notebook and its first page.
         if (notebookData.length > 0) {
-          const firstNotebookId = notebookData[0].id
-          setActiveNotebookId(firstNotebookId)
+          const savedNotebookId = localStorage.getItem("activeNotebookId")
+          const savedPageId = localStorage.getItem("activePageId")
 
-          const firstPage = pageData.find(page => page.notebook_id === firstNotebookId)
-          if (firstPage) {
-            setActivePageId(firstPage.id)
+          const notebookToOpen = notebookData.find(notebook => notebook.id === savedNotebookId) || notebookData[0]
+          setActiveNotebookId(notebookToOpen.id)
+
+          const pagesInNotebook = pageData.filter(page => page.notebook_id === notebookToOpen.id)
+          const pageToOpen = pagesInNotebook.find(page => String(page.id) === savedPageId) || pagesInNotebook[0]
+          if (pageToOpen) {
+            setActivePageId(pageToOpen.id)
           }
         }
       } catch (err) {
@@ -50,6 +55,16 @@ function App() {
 
     loadData()
   }, []);
+
+  // Remember the last-opened notebook + page on this device (per-browser).
+  // Skip while loading, otherwise this runs on mount with null values and
+  // wipes the saved ids before loadData can read them.
+  useEffect(() => {
+    if (loading) return
+    if (activeNotebookId) localStorage.setItem("activeNotebookId", activeNotebookId)
+    if (activePageId) localStorage.setItem("activePageId", activePageId)
+    else localStorage.removeItem("activePageId")
+  }, [activeNotebookId, activePageId, loading])
 
   useEffect(() => {
     if (!currentPage) return;
