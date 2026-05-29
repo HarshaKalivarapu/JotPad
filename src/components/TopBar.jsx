@@ -1,4 +1,4 @@
-import { PanelRightClose, PanelRightOpen, SlidersHorizontal } from 'lucide-react'
+import { PanelRightClose, PanelRightOpen, SlidersHorizontal, RefreshCw } from 'lucide-react'
 
 function TopBar(props) {
     return (
@@ -7,7 +7,10 @@ function TopBar(props) {
                 {props.isOpen ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
             </button>
             <h2>{props.currentPage?.title || "Loading..."}</h2>
-            <button className="icon-button"><SlidersHorizontal size={20} /></button>
+            <div className="top-bar-actions">
+                <button className="icon-button" onClick={() => window.location.reload()}><RefreshCw size={20} /></button>
+                <button className="icon-button"><SlidersHorizontal size={20} /></button>
+            </div>
         </div>
     )
 }

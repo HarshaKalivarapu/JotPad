@@ -30,6 +30,13 @@ button, input, textarea {
   font-family: 'IBM Plex Sans', sans-serif;
 }
 
+/* Groups the refresh + settings buttons together on the right. */
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Reusable icon button: no chrome, circular hover highlight. */
 .icon-button {
   display: flex;
