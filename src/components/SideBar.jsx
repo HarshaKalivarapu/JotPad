@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { MdOutlineStickyNote2 } from 'react-icons/md'
-import { Ellipsis, ArrowLeft, BookPlus } from 'lucide-react'
+import { Ellipsis, ArrowLeft, Notebook, StickyNotePlus } from 'lucide-react'
 
 function SideBar(props) {
     const [view, setView] = useState("pages") // "notebooks" | "pages"
@@ -44,7 +43,7 @@ function SideBar(props) {
                 // ---------- NOTEBOOKS VIEW ----------
                 <>
                     <button className="create-page" onClick={props.createNotebook}>
-                        <BookPlus size={16} /> New Notebook
+                        <Notebook size={16} /> New Notebook
                     </button>
                     {props.notebooks.map((notebook) => (
                         <div className="page-button" key={notebook.id}>
@@ -86,7 +85,7 @@ function SideBar(props) {
                     </div>
 
                     <button className="create-page" onClick={props.createPage}>
-                        <MdOutlineStickyNote2 size={16} /> New Page
+                        <StickyNotePlus size={16} /> New Page
                     </button>
                     {props.pagesList.map((page) => (
                         <div className="page-button" key={page.id}>

@@ -107,6 +107,7 @@ button, input, textarea {
   gap: 8px;
   margin-bottom: 12px;
   font-size: 0.9rem;
+  padding-left: 20px;
 }
 
 /* Pages-view header: back arrow on the left, notebook title centered. */
