@@ -35,13 +35,20 @@ button, input, textarea {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+
+  /* Truncate long titles so they never collide with the buttons. */
+  max-width: calc(100% - 200px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Groups the refresh + settings buttons together on the right. */
+/* Groups the refresh + settings buttons together on the right.
+   The larger gap nudges the refresh button left, away from settings. */
 .top-bar-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
 }
 
 /* Reusable icon button: no chrome, circular hover highlight. */
@@ -67,7 +74,6 @@ button, input, textarea {
 .panel-toggle {
   position: relative;
   z-index: 30;
-  margin-left: -8px;
 }
 
 .side-bar-panel {
