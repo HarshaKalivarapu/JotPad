@@ -17,6 +17,7 @@ button, input, textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 
   padding: 16px 20px 12px;
   background-color: #fcfaf8;
@@ -28,6 +29,12 @@ button, input, textarea {
   font-size: 1.2rem;
   color: #333;
   font-family: 'IBM Plex Sans', sans-serif;
+
+  /* True center, independent of the left/right button widths. */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* Groups the refresh + settings buttons together on the right. */
@@ -60,6 +67,7 @@ button, input, textarea {
 .panel-toggle {
   position: relative;
   z-index: 30;
+  margin-left: -8px;
 }
 
 .side-bar-panel {
