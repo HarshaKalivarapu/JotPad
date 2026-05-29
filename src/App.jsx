@@ -66,6 +66,22 @@ function App() {
     else localStorage.removeItem("activePageId")
   }, [activeNotebookId, activePageId, loading])
 
+  // Close the side panel when clicking anywhere outside it (ignoring the
+  // toggle button, which handles its own open/close).
+  useEffect(() => {
+    if (!sideBar) return
+
+    function handleClickOutside(event) {
+      if (event.target.closest('.side-bar-panel') || event.target.closest('.panel-toggle')) {
+        return
+      }
+      setSideBar(false)
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [sideBar])
+
   useEffect(() => {
     if (!currentPage) return;
 
@@ -236,7 +252,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <TopBar switchToggle={handleSideBarToggle} currentPage={currentPage}/>
+      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage}/>
       <div className="main-container">
         <SideBar
           isOpen={sideBar}
