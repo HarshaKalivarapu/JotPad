@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { MdOutlineStickyNote2 } from 'react-icons/md'
+import { Ellipsis } from 'lucide-react'
 
 function SideBar(props) {
     const [openMenuId, setOpenMenuId] = useState(null)
@@ -12,7 +14,7 @@ function SideBar(props) {
 
     return (
         <div className={props.isOpen ? "side-bar-panel open" : "side-bar-panel"}>
-            <button className="create-page" onClick={props.createPage}>New Page</button>
+            <button className="create-page" onClick={props.createPage}><MdOutlineStickyNote2 size={16} /> New Page</button>
             {props.pagesList.map((page) => (
                 <div className="page-button" key={page.id}>
 
@@ -23,10 +25,10 @@ function SideBar(props) {
                         </>
                     ) : (
                         <>
-                            <button onClick={() => props.changePage(page.id)}>
+                            <button className={page.id === props.activePageId ? "page-listing active" : "page-listing"} onClick={() => props.changePage(page.id)}>
                                 {page.title}
                             </button>
-                            <button className="page-three-dot-menu" onClick={() => setOpenMenuId(openMenuId === page.id ? null : page.id)}>...</button>
+                            <button className="page-three-dot-menu" onClick={() => setOpenMenuId(openMenuId === page.id ? null : page.id)}><Ellipsis size={18} /></button>
 
                             {openMenuId === page.id && (
                                 <div className="page-dropdown-menu">

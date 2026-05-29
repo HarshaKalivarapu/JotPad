@@ -1,5 +1,10 @@
 body {
   margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+button, input, textarea {
+  font-family: inherit;
 }
 
 .app-container {
@@ -43,22 +48,36 @@ body {
   background-color: #e4e6e9;
 }
 
+/* Keeps the side-panel toggle above the panel overlay so it stays visible
+   and clickable in its top-bar position even when the panel is open. */
+.panel-toggle {
+  position: relative;
+  z-index: 30;
+}
+
 .side-bar-panel {
   display: flex;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  font-family: 'Inter', sans-serif;
   width: 0;
   height: 100%;
   background-color: #fcfaf8;
-  padding: 10px 0;
+  padding: 0;
   gap: 5px;
   overflow: hidden;
   white-space: nowrap;
   transition: width 0.25s ease, padding 0.25s ease;
 }
 
+/* Top padding clears the floating toggle button so panel content starts
+   below it (making the button look like it sits on the top bar). */
 .side-bar-panel.open {
   width: 250px;
-  padding: 10px;
+  padding: 56px 10px 10px;
   border-right: 1px solid #ddd;
 }
 
@@ -70,10 +89,24 @@ body {
   border-radius: 5px;
   cursor: pointer;
   font-size: 1rem;
+  color: #000;
 }
 
 .side-bar-panel button:hover {
-  background-color: #e4e6e9;
+  background-color: #f0f0f2;
+}
+
+/* The currently open page stays highlighted in the list. */
+.side-bar-panel button.active {
+  background-color: #f0f0f2;
+}
+
+.side-bar-panel button.create-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
 }
 
 .page {
@@ -119,11 +152,6 @@ body {
   margin: 0.15em 0;
 }
 
-/* Smaller side margins once the side panel is open. */
-.panel-open .text-space {
-  margin: 40px 8%;
-}
-
 .main-container {
   display: flex;
   flex: 1;
@@ -136,6 +164,24 @@ body {
   justify-content: space-between;
   align-items: center;
   position: relative;
+}
+
+/* Page listing fills the row end-to-end; the three-dot menu floats on top. */
+.page-listing {
+  width: 100%;
+}
+
+.side-bar-panel button.page-three-dot-menu {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px;
+}
+
+/* The three-dot keeps the darker gray, distinct from the lighter row box. */
+.side-bar-panel button.page-three-dot-menu:hover {
+  background-color: #e4e6e9;
 }
 
 .page-dropdown-menu {

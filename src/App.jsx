@@ -133,8 +133,8 @@ function App() {
   return (
     <div className="app-container">
       <TopBar switchToggle={handleSideBarToggle} currentPage={currentPage}/>
-      <div className={sideBar ? "main-container panel-open" : "main-container"}>
-        <SideBar isOpen={sideBar} pagesList={pages} changePage={setActivePageId} createPage={handleCreatePage} deletePage={handleDeletePage} updatePageTitle={handleUpdateCurrentPageTitle}/>
+      <div className="main-container">
+        <SideBar isOpen={sideBar} pagesList={pages} activePageId={activePageId} changePage={setActivePageId} createPage={handleCreatePage} deletePage={handleDeletePage} updatePageTitle={handleUpdateCurrentPageTitle}/>
         {currentPage ? (
           <Page currentPage={currentPage} updatePage={handleUpdateCurrentPage}/>
         ) : (
