@@ -7,27 +7,46 @@ import Page from './components/Page.jsx'
 
 function App() {
   const [sideBar, setSideBar] = useState(false)
+  const [notebooks, setNotebooks] = useState([])
+  const [activeNotebookId, setActiveNotebookId] = useState(null)
   const [pages, setPages] = useState([])
   const [activePageId, setActivePageId] = useState(null)
 
+  const currentNotebook = notebooks.find(notebook => notebook.id === activeNotebookId)
   const currentPage = pages.find(page => page.id === activePageId)
+  // Only the pages that belong to the currently open notebook.
+  const notebookPages = pages.filter(page => page.notebook_id === activeNotebookId)
 
   useEffect(() => {
-    async function fetchPages() {
-      const { data, error } = await supabase.from('pages').select('*');
+    async function loadData() {
+      const { data: notebookData, error: notebookError } = await supabase.from('notebooks').select('*');
+      if (notebookError) {
+        console.error("Cloud Error:", notebookError.message)
+        return
+      }
 
-      if (error) {
-        console.error("Cloud Error:", error.message)
-      } else {
-        setPages(data)
-        
-        if (data.length > 0) {
-          setActivePageId(data[0].id)
+      const { data: pageData, error: pageError } = await supabase.from('pages').select('*');
+      if (pageError) {
+        console.error("Cloud Error:", pageError.message)
+        return
+      }
+
+      setNotebooks(notebookData)
+      setPages(pageData)
+
+      // Default to the first notebook and its first page.
+      if (notebookData.length > 0) {
+        const firstNotebookId = notebookData[0].id
+        setActiveNotebookId(firstNotebookId)
+
+        const firstPage = pageData.find(page => page.notebook_id === firstNotebookId)
+        if (firstPage) {
+          setActivePageId(firstPage.id)
         }
       }
     }
 
-    fetchPages()
+    loadData()
   }, []);
 
   useEffect(() => {
@@ -53,6 +72,31 @@ function App() {
 
   function handleSideBarToggle() {
     setSideBar(!sideBar)
+  }
+
+  function handleChangeNotebook(notebookId) {
+    setActiveNotebookId(notebookId)
+    // Open the notebook's first page (or none if it's empty).
+    const firstPage = pages.find(page => page.notebook_id === notebookId)
+    setActivePageId(firstPage ? firstPage.id : null)
+  }
+
+  async function handleCreateNotebook() {
+    const { data, error } = await supabase
+      .from('notebooks')
+      .insert([{ title: "Untitled notebook" }])
+      .select();
+
+    if (error) {
+      console.error("Cloud Error: ", error.message);
+      return;
+    }
+
+    const newNotebook = data[0];
+
+    setNotebooks([newNotebook, ...notebooks]);
+    setActiveNotebookId(newNotebook.id);
+    setActivePageId(null);
   }
 
   function handleUpdateCurrentPage(newContent) {
@@ -91,7 +135,7 @@ function App() {
   async function handleCreatePage() {
     const { data, error } = await supabase
       .from('pages')
-      .insert([{ title: "Untitled page", content: "" }])
+      .insert([{ title: "Untitled page", content: "", notebook_id: activeNotebookId }])
       .select();
     
     if (error) {
@@ -119,12 +163,9 @@ function App() {
     const updatedPages = pages.filter(page => page.id !== pageId)
 
     if (activePageId === pageId) {
-      if (updatedPages.length === 0) {
-        setActivePageId(null);
-        setPages([]);
-        return;
-      }
-      setActivePageId(updatedPages[0].id);
+      // Fall back to the next page in the same notebook, or none.
+      const nextPage = updatedPages.find(page => page.notebook_id === activeNotebookId)
+      setActivePageId(nextPage ? nextPage.id : null)
     }
 
     setPages(updatedPages)
@@ -134,7 +175,20 @@ function App() {
     <div className="app-container">
       <TopBar switchToggle={handleSideBarToggle} currentPage={currentPage}/>
       <div className="main-container">
-        <SideBar isOpen={sideBar} pagesList={pages} activePageId={activePageId} changePage={setActivePageId} createPage={handleCreatePage} deletePage={handleDeletePage} updatePageTitle={handleUpdateCurrentPageTitle}/>
+        <SideBar
+          isOpen={sideBar}
+          notebooks={notebooks}
+          activeNotebookId={activeNotebookId}
+          currentNotebook={currentNotebook}
+          changeNotebook={handleChangeNotebook}
+          createNotebook={handleCreateNotebook}
+          pagesList={notebookPages}
+          activePageId={activePageId}
+          changePage={setActivePageId}
+          createPage={handleCreatePage}
+          deletePage={handleDeletePage}
+          updatePageTitle={handleUpdateCurrentPageTitle}
+        />
         {currentPage ? (
           <Page currentPage={currentPage} updatePage={handleUpdateCurrentPage}/>
         ) : (
