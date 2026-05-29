@@ -109,6 +109,28 @@ button, input, textarea {
   font-size: 0.9rem;
 }
 
+/* Pages-view header: back arrow on the left, notebook title centered. */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 36px;
+  margin-bottom: 8px;
+}
+
+.panel-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.panel-title {
+  font-weight: 600;
+  color: #000;
+}
+
 .page {
   flex: 1;
   background-color: #fcfaf8;
