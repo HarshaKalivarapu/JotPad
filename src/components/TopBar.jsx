@@ -9,7 +9,7 @@ function TopBar(props) {
             <h2>{props.currentPage?.title || "Loading..."}</h2>
             <div className="top-bar-actions">
                 <button className="icon-button" onClick={() => window.location.reload()}><RefreshCw size={20} /></button>
-                <button className="icon-button"><SlidersHorizontal size={20} /></button>
+                <button className="icon-button" onClick={props.onSignOut}><SlidersHorizontal size={20} /></button>
             </div>
         </div>
     )

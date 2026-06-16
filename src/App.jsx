@@ -4,9 +4,12 @@ import { supabase } from './supabase'
 import TopBar from './components/TopBar.jsx'
 import SideBar from './components/SideBar.jsx'
 import Page from './components/Page.jsx'
+import Login from './components/Login.jsx'
 
 function App() {
   const [sideBar, setSideBar] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notebooks, setNotebooks] = useState([])
   const [activeNotebookId, setActiveNotebookId] = useState(null)
@@ -18,8 +21,25 @@ function App() {
   // Only the pages that belong to the currently open notebook.
   const notebookPages = pages.filter(page => page.notebook_id === activeNotebookId)
 
+  // Track the Supabase auth session. Until it resolves we show nothing;
+  // once it's settled we either show Login (no session) or the app.
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Load notebooks + pages from Supabase — only once we have a session.
+  useEffect(() => {
+    if (!session) return
+
     async function loadData() {
+      setLoading(true)
       try {
         // Most-recently-edited first.
         const { data: notebookData, error: notebookError } = await supabase.from('notebooks').select('*').order('updated_at', { ascending: false });
@@ -55,7 +75,7 @@ function App() {
     }
 
     loadData()
-  }, []);
+  }, [session?.user?.id]);
 
   // Remember the last-opened notebook + page on this device (per-browser).
   // Skip while loading, otherwise this runs on mount with null values and
@@ -114,6 +134,12 @@ function App() {
     setSideBar(!sideBar)
   }
 
+  async function handleSignOut() {
+    if (window.confirm("Sign out?")) {
+      await supabase.auth.signOut()
+    }
+  }
+
   function handleChangeNotebook(notebookId) {
     setActiveNotebookId(notebookId)
     // Open the notebook's first page (or none if it's empty).
@@ -124,7 +150,7 @@ function App() {
   async function handleCreateNotebook() {
     const { data, error } = await supabase
       .from('notebooks')
-      .insert([{ title: "Untitled notebook" }])
+      .insert([{ title: "Untitled notebook", user_id: session.user.id }])
       .select();
 
     if (error) {
@@ -226,7 +252,7 @@ function App() {
   async function handleCreatePage() {
     const { data, error } = await supabase
       .from('pages')
-      .insert([{ title: "Untitled page", content: "", notebook_id: activeNotebookId }])
+      .insert([{ title: "Untitled page", content: "", notebook_id: activeNotebookId, user_id: session.user.id }])
       .select();
     
     if (error) {
@@ -262,9 +288,12 @@ function App() {
     setPages(updatedPages)
   }
 
+  if (authLoading) return null
+  if (!session) return <Login />
+
   return (
     <div className="app-container">
-      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage}/>
+      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage} onSignOut={handleSignOut}/>
       <div className="main-container">
         <SideBar
           isOpen={sideBar}
