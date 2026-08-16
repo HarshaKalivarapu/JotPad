@@ -127,8 +127,20 @@ function Page(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.currentPage.id, editor, flushPending])
 
+    // Clicking the empty space around the text (the side margins, or the blank
+    // area below a short/new page) focuses the editor so the user can start
+    // typing without having to hit the exact text line. Clicks on the text
+    // itself land inside .ProseMirror and fall through to Tiptap's own cursor
+    // handling untouched.
+    function handlePageMouseDown(event) {
+        if (!editor) return
+        if (event.target.closest('.ProseMirror')) return
+        event.preventDefault()
+        editor.commands.focus()
+    }
+
     return (
-        <div className="page">
+        <div className="page" onMouseDown={handlePageMouseDown}>
             {/*
                 EditorContent renders the actual editable area. Tiptap injects a
                 contentEditable <div class="tiptap ProseMirror"> inside this

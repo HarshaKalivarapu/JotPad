@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Ellipsis, ArrowLeft, Notebook, StickyNotePlus } from 'lucide-react'
 
 function SideBar(props) {
@@ -6,6 +6,19 @@ function SideBar(props) {
     const [openMenuId, setOpenMenuId] = useState(null)
     const [editId, setEditId] = useState(null)
     const [tempTitle, setTempTitle] = useState("")
+
+    // Close an open three-dot menu when clicking anywhere outside it. Clicks on
+    // a three-dot button or inside a dropdown are ignored, so those keep their
+    // own toggle / option behavior.
+    useEffect(() => {
+        if (openMenuId === null) return
+        function handleClickOutside(event) {
+            if (event.target.closest('.page-dropdown-menu') || event.target.closest('.page-three-dot-menu')) return
+            setOpenMenuId(null)
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [openMenuId])
 
     function startRename(id, currentTitle) {
         setOpenMenuId(null)

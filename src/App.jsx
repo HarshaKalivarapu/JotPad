@@ -96,7 +96,9 @@ function App() {
     if (!sideBar) return
 
     function handleClickOutside(event) {
-      if (event.target.closest('.side-bar-panel') || event.target.closest('.panel-toggle')) {
+      // Also ignore clicks in the top-right settings menu, so opening it or
+      // toggling hidden items doesn't close the sidebar out from under you.
+      if (event.target.closest('.side-bar-panel') || event.target.closest('.panel-toggle') || event.target.closest('.settings-menu-wrap')) {
         return
       }
       setSideBar(false)
@@ -183,6 +185,27 @@ function App() {
     // the "Select a page" screen instead of showing a hidden page.
     if (hidden && pageId === activePageId) {
       setActivePageId(null)
+    }
+  }
+
+  // Toggle whether the sidebar reveals hidden items. When turning revealing
+  // OFF, anything hidden that's currently open must close too — otherwise a
+  // now-invisible notebook/page would linger in the editor. Mirrors what
+  // hiding an open item does.
+  function handleToggleHidden() {
+    const next = !showHidden
+    setShowHidden(next)
+
+    if (!next) {
+      const activeNotebook = notebooks.find(notebook => notebook.id === activeNotebookId)
+      const activePage = pages.find(page => page.id === activePageId)
+
+      if (activeNotebook?.hidden) {
+        setActiveNotebookId(null)
+        setActivePageId(null)
+      } else if (activePage?.hidden) {
+        setActivePageId(null)
+      }
     }
   }
 
@@ -360,7 +383,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage} onSignOut={handleSignOut} showHidden={showHidden} onToggleHidden={() => setShowHidden(!showHidden)}/>
+      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage} onSignOut={handleSignOut} showHidden={showHidden} onToggleHidden={handleToggleHidden}/>
       <div className="main-container">
         <SideBar
           isOpen={sideBar}
