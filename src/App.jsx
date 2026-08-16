@@ -15,6 +15,9 @@ function App() {
   const [activeNotebookId, setActiveNotebookId] = useState(null)
   const [pages, setPages] = useState([])
   const [activePageId, setActivePageId] = useState(null)
+  // Whether the sidebar currently reveals hidden notebooks/pages. Ephemeral:
+  // resets to false on reload, so hidden items are hidden again next session.
+  const [showHidden, setShowHidden] = useState(false)
 
   const currentNotebook = notebooks.find(notebook => notebook.id === activeNotebookId)
   const currentPage = pages.find(page => page.id === activePageId)
@@ -134,6 +137,53 @@ function App() {
 
   function handleSideBarToggle() {
     setSideBar(!sideBar)
+  }
+
+  // Hide/reveal a notebook or page. `hidden` is the new value (true = hide,
+  // false = "show permanently"). Persists to Supabase, then mirrors locally.
+  async function handleSetNotebookHidden(notebookId, hidden) {
+    const { error } = await supabase
+      .from('notebooks')
+      .update({ hidden })
+      .eq('id', notebookId);
+
+    if (error) {
+      console.error("Cloud Hide Error:", error.message);
+      return;
+    }
+
+    setNotebooks(notebooks.map(notebook =>
+      notebook.id === notebookId ? { ...notebook, hidden } : notebook
+    ))
+
+    // If we just hid the open notebook, deselect it so the editor falls back
+    // to the "Select a notebook" screen instead of showing a hidden notebook.
+    if (hidden && notebookId === activeNotebookId) {
+      setActiveNotebookId(null)
+      setActivePageId(null)
+    }
+  }
+
+  async function handleSetPageHidden(pageId, hidden) {
+    const { error } = await supabase
+      .from('pages')
+      .update({ hidden })
+      .eq('id', pageId);
+
+    if (error) {
+      console.error("Cloud Hide Error:", error.message);
+      return;
+    }
+
+    setPages(pages.map(page =>
+      page.id === pageId ? { ...page, hidden } : page
+    ))
+
+    // If we just hid the open page, deselect it so the editor falls back to
+    // the "Select a page" screen instead of showing a hidden page.
+    if (hidden && pageId === activePageId) {
+      setActivePageId(null)
+    }
   }
 
   async function handleSignOut() {
@@ -310,7 +360,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage} onSignOut={handleSignOut}/>
+      <TopBar switchToggle={handleSideBarToggle} isOpen={sideBar} currentPage={currentPage} onSignOut={handleSignOut} showHidden={showHidden} onToggleHidden={() => setShowHidden(!showHidden)}/>
       <div className="main-container">
         <SideBar
           isOpen={sideBar}
@@ -327,6 +377,9 @@ function App() {
           createPage={handleCreatePage}
           deletePage={handleDeletePage}
           updatePageTitle={handleUpdateCurrentPageTitle}
+          showHidden={showHidden}
+          setNotebookHidden={handleSetNotebookHidden}
+          setPageHidden={handleSetPageHidden}
         />
         {loading ? (
           <div className="empty-state">
@@ -337,6 +390,10 @@ function App() {
             <p>Create a notebook to get started</p>
             <button onClick={handleCreateNotebook}>New Notebook</button>
           </div>
+        ) : !activeNotebookId ? (
+          <div className="empty-state">
+            <p>Select a notebook</p>
+          </div>
         ) : notebookPages.length === 0 ? (
           <div className="empty-state">
             <p>Create a page to get started</p>
@@ -344,7 +401,11 @@ function App() {
           </div>
         ) : currentPage ? (
           <Page currentPage={currentPage} updatePage={handleUpdateCurrentPage}/>
-        ) : null}
+        ) : (
+          <div className="empty-state">
+            <p>Select a page</p>
+          </div>
+        )}
       </div>
     </div>
   )

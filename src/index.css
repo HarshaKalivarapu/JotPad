@@ -351,10 +351,41 @@ button, input, textarea {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-/* Mini-panel menu items: full-width, rounded, with the lighter hover box. */
+/* Mini-panel menu items: full-width, rounded, with the lighter hover box.
+   Self-contained so the menu looks identical in the top bar and the sidebar
+   (the sidebar's own button styles don't reach the top-bar menu). */
 .page-dropdown-menu button {
   width: 100%;
   padding: 8px 10px;
+  text-align: left;
+  background-color: transparent;
+  border: none;
   border-radius: 5px;
+  color: #000;
+  cursor: pointer;
   font-size: 0.9rem;
+}
+
+.page-dropdown-menu button:hover {
+  background-color: #f0f0f2;
+}
+
+/* Anchors the settings dropdown to its button in the top bar. */
+.settings-menu-wrap {
+  position: relative;
+}
+
+/* "Hidden" label above the divider line that separates hidden items. */
+.hidden-section-label {
+  margin: 12px 4px 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+}
+
+.hidden-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 0 0 6px;
 }
