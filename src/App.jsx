@@ -123,7 +123,9 @@ function App() {
       if (error) {
         console.error("Cloud Auto-Save Error:", error.message);
       }
-    }, 1000);
+      // 400ms here + Page.jsx's 400ms SAVE_DELAY ≈ 0.8s from last keystroke
+      // to the database write.
+    }, 400);
 
     return () => {
       clearTimeout(timerId);
@@ -211,20 +213,35 @@ function App() {
     }
   }
 
-  function handleUpdateCurrentPage(newContent) {
-    // Update the content AND move this page to the front, so the most
-    // recently edited page sits at the top of the list right away.
-    const edited = pages.find(page => page.id === activePageId)
+  function handleUpdateCurrentPage(pageId, newContent) {
+    // Takes an explicit pageId (not activePageId): the editor's save is
+    // debounced, so an edit may arrive after the user has switched pages — it
+    // must still land on the page it was typed on.
+    const edited = pages.find(page => page.id === pageId)
     if (!edited) return
-    const others = pages.filter(page => page.id !== activePageId)
-    setPages([{ ...edited, content: newContent }, ...others])
 
-    // Bump the active notebook to the front too (skip if already first).
+    // Update the page's content. If it's already at the top of the list, just
+    // swap the content in place; otherwise move it to the front so the most
+    // recently edited page leads the list. The guard means we don't rebuild
+    // the ordering when it's already first (mirrors the notebook bump below).
+    setPages(prev => {
+      if (prev[0]?.id === pageId) {
+        return prev.map(page =>
+          page.id === pageId ? { ...page, content: newContent } : page
+        )
+      }
+      return [
+        { ...edited, content: newContent },
+        ...prev.filter(page => page.id !== pageId),
+      ]
+    })
+
+    // Bump the edited page's notebook to the front too (skip if already first).
     setNotebooks(prev => {
-      if (prev[0]?.id === activeNotebookId) return prev
-      const active = prev.find(notebook => notebook.id === activeNotebookId)
+      if (prev[0]?.id === edited.notebook_id) return prev
+      const active = prev.find(notebook => notebook.id === edited.notebook_id)
       if (!active) return prev
-      return [active, ...prev.filter(notebook => notebook.id !== activeNotebookId)]
+      return [active, ...prev.filter(notebook => notebook.id !== edited.notebook_id)]
     })
   }
 
